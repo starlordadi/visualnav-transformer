@@ -26,7 +26,7 @@ recon:
       k3: 0.0
 
 scand:
-  metric_waypoint_spacing: 0.38
+  metric_waypoint_spacing: 0.253
 
 tartan_drive:
   metric_waypoint_spacing: 0.72
@@ -60,4 +60,45 @@ carla:
 sacson:
   metric_waypoint_spacing: 0.255
 
+spot1:
+  metric_waypoint_spacing: 1.50
+
+spot4:
+  metric_waypoint_spacing: 1.50
+
+naisr:
+  metric_waypoint_spacing: 1.65
+
+marsbot:
+  metric_waypoint_spacing: .11
 # add your own dataset params here:
+
+mars_rock:
+  metric_waypoint_spacing: .21
+
+marsbot_science_rock:
+  metric_waypoint_spacing: .42
+
+figure8_sky:
+  metric_waypoint_spacing: .2
+
+mars_yard:
+  metric_waypoint_spacing: .26
+
+spot_garage:
+  metric_waypoint_spacing: 0.05
+
+sim-mt1:
+  metric_waypoint_spacing: 0.06
+
+sim-mt1-2hz:
+  metric_waypoint_spacing: 0.12
+
+mars_yard_high_res:
+  metric_waypoint_spacing: 0.32
+
+spot4_mars_yard:
+  metric_waypoint_spacing: 0.2
+
+spot4_garage:
+  metric_waypoint_spacing: 0.2

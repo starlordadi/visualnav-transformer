@@ -226,7 +226,6 @@ class ViNT_Dataset(Dataset):
 
     def _load_image(self, trajectory_name, time):
         image_path = get_data_path(self.data_folder, trajectory_name, time)
-
         try:
             with self._image_cache.begin() as txn:
                 image_buffer = txn.get(image_path.encode())
@@ -333,6 +332,11 @@ class ViNT_Dataset(Dataset):
 
         # Compute actions
         actions, goal_pos = self._compute_actions(curr_traj_data, curr_time, goal_time)
+
+        #if object dtype make it float
+        if actions.dtype != np.float64:
+            actions = actions.astype(np.float64)
+            goal_pos = goal_pos.astype(np.float64)
         
         # Compute distances
         if goal_is_negative:
@@ -341,7 +345,11 @@ class ViNT_Dataset(Dataset):
             distance = (goal_time - curr_time) // self.waypoint_spacing
             assert (goal_time - curr_time) % self.waypoint_spacing == 0, f"{goal_time} and {curr_time} should be separated by an integer multiple of {self.waypoint_spacing}"
         
-        actions_torch = torch.as_tensor(actions, dtype=torch.float32)
+        try:
+            actions_torch = torch.as_tensor(actions, dtype=torch.float32)
+        except Exception as e:
+            print(f'actions: {actions}, error: {e}')
+
         if self.learn_angle:
             actions_torch = calculate_sin_cos(actions_torch)
         

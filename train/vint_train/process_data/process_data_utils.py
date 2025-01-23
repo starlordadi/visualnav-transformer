@@ -7,9 +7,9 @@ import cv2
 from typing import Any, Tuple, List, Dict
 import torchvision.transforms.functional as TF
 
-IMAGE_SIZE = (160, 120)
-IMAGE_ASPECT_RATIO = 4 / 3
-
+IMAGE_SIZE = (280, 280)
+# IMAGE_ASPECT_RATIO = 4 / 3
+IMAGE_ASPECT_RATIO = 1 / 1
 
 def process_images(im_list: List, img_process_func) -> List:
     """
@@ -112,6 +112,71 @@ def nav_to_xy_yaw(odom_msg, ang_offset: float) -> Tuple[List[float], float]:
 #######################################################################
 
 
+def get_images_and_odom_distance_based(
+        bag: rosbag.Bag,
+        imtopics: List[str] or str,
+        odomtopics: List[str] or str,
+        img_process_func: Any,
+        odom_process_func: Any,
+        linear_dist_threshold: float = 0.2,
+        angular_dist_threshold: float = 0.1,
+):
+    imtopic = None
+    odomtopic = None
+    
+    if type(imtopics) == str:
+        imtopic = imtopics
+    else:
+        for imt in imtopics:
+            if bag.get_message_count(imt) > 0:
+                imtopic = imt
+                break
+    if type(odomtopics) == str:
+        odomtopic = odomtopics
+    else:
+        for ot in odomtopics:
+            if bag.get_message_count(ot) > 0:
+                odomtopic = ot
+                break
+    if not (imtopic and odomtopic):
+        # bag doesn't have both topics
+        return None, None
+
+    synced_imdata = []
+    synced_odomdata = []
+    prev_position = None
+    prev_yaw = None
+    curr_imdata = curr_odomdata = None
+
+    for topic, msg, t in bag.read_messages(topics=[imtopic, odomtopic]):
+        if topic == imtopic:
+            curr_imdata = msg
+        elif topic == odomtopic:
+            curr_odomdata = msg
+            position, yaw = odom_process_func(curr_odomdata, 0.0)
+            if prev_position is None and curr_imdata is not None:
+                prev_position = position
+                prev_yaw = yaw
+                synced_imdata.append(curr_imdata)
+                synced_odomdata.append(curr_odomdata)
+            elif curr_imdata is not None and curr_odomdata is not None:
+                linear_dist = ((position[0] - prev_position[0]) ** 2 + (position[1] - prev_position[1]) ** 2) ** 0.5
+                angular_dist = abs(yaw - prev_yaw)
+                if linear_dist >= linear_dist_threshold:
+                    synced_imdata.append(curr_imdata)
+                    synced_odomdata.append(curr_odomdata)
+                    prev_position = position
+                    prev_yaw = yaw
+
+    img_data = process_images(synced_imdata, img_process_func)
+    traj_data = process_odom(
+        synced_odomdata,
+        odom_process_func,
+    )
+
+    return img_data, traj_data
+
+
 def get_images_and_odom(
     bag: rosbag.Bag,
     imtopics: List[str] or str,
@@ -136,6 +201,13 @@ def get_images_and_odom(
         img_data (list): list of PIL images
         traj_data (list): list of odom data
     """
+    
+    # for topic, msg, t in bag.read_messages():
+    #     print(f"Topic: {topic}")
+    #     #print(f"Message: {msg}")
+    #     print(f"Timestamp: {t}")
+    #     print("---------------------")
+    
     # check if bag has both topics
     odomtopic = None
     imtopic = None
@@ -230,6 +302,7 @@ def filter_backwards(
         new_traj_yaws = new_traj_data[:, 2]
         return (new_img_list, {"position": new_traj_pos, "yaw": new_traj_yaws})
 
+    traj_len = 0
     for i in range(max(start_slack, 1), len(traj_pos) - end_slack):
         pos1 = traj_pos[i - 1]
         yaw1 = traj_yaws[i - 1]
@@ -239,16 +312,24 @@ def filter_backwards(
                 new_traj_pairs = [
                     (img_list[i - 1], [*traj_pos[i - 1], traj_yaws[i - 1]])
                 ]
+                traj_len += 1
                 start = False
-            elif i == len(traj_pos) - end_slack - 1:
-                cut_trajs.append(process_pair(new_traj_pairs))
+            elif i == len(traj_pos) - end_slack - 1 or traj_len > 20000:
+                print(traj_len)
+                if traj_len > 5:
+                    cut_trajs.append(process_pair(new_traj_pairs))
+                traj_len = 0
+                start = True
             else:
                 new_traj_pairs.append(
                     (img_list[i - 1], [*traj_pos[i - 1], traj_yaws[i - 1]])
                 )
+                traj_len += 1
         elif not start:
-            cut_trajs.append(process_pair(new_traj_pairs))
+            if traj_len > 3:
+                cut_trajs.append(process_pair(new_traj_pairs))
             start = True
+            traj_len = 0
     return cut_trajs
 
 

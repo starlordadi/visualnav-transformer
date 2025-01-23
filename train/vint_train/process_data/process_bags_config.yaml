@@ -26,4 +26,52 @@ sacson:
   img_process_func: "process_sacson_img"
   odom_process_func: "nav_to_xy_yaw"
 
+spot1:
+  odomtopics: "/spot1/locus/odometry"
+  imtopics: "/spot1/camera_front/color/image_raw/compressed"
+  ang_offset: 0.0
+  img_process_func: "process_scand_img"
+  odom_process_func: "nav_to_xy_yaw"
+  
+spot4:
+  odomtopics: "/spot4/locus/odometry"
+  imtopics: "/spot4/camera_front/color/image_raw/compressed"
+  ang_offset: 0.0
+  img_process_func: "process_scand_img"
+  odom_process_func: "nav_to_xy_yaw"
+  
 # add your own datasets below:
+spot1:
+  odomtopics: "/spot1/locus/odometry"
+  imtopics: "/spot1/camera_front/color/image_raw/compressed"
+  ang_offset: 0.0
+  img_process_func: "process_scand_img"
+  odom_process_func: "nav_to_xy_yaw"
+  
+spot4:
+  odomtopics: "/spot4/locus/odometry"
+  imtopics: "/spot4/camera_front/color/image_raw/compressed"
+  ang_offset: 0.0
+  img_process_func: "process_scand_img"
+  odom_process_func: "nav_to_xy_yaw"
+
+marsbot:
+  odomtopics: "/odom"
+  imtopics: "/rgb_left"
+  ang_offset: 0.0
+  img_process_func: "process_locobot_img"
+  odom_process_func: "nav_to_xy_yaw"
+
+skybot:
+  odomtopics: "/odom"
+  imtopics: "/rgb_left"
+  ang_offset: 0.0
+  img_process_func: "process_locobot_img"
+  odom_process_func: "nav_to_xy_yaw"
+
+simbot:
+  odomtopics: "odom"
+  imtopics: "rgb_left_throttle"
+  ang_offset: 0.0
+  img_process_func: "process_locobot_img"
+  odom_process_func: "nav_to_xy_yaw"

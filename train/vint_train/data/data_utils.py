@@ -10,9 +10,9 @@ import torch.nn.functional as F
 import io
 from typing import Union
 
-VISUALIZATION_IMAGE_SIZE = (160, 120)
+VISUALIZATION_IMAGE_SIZE = (280, 280)
 IMAGE_ASPECT_RATIO = (
-    4 / 3
+    1 / 1
 )  # all images are centered cropped to a 4:3 aspect ratio in training
 
 
@@ -48,7 +48,11 @@ def to_local_coords(
     Returns:
         np.ndarray: positions in local coordinates
     """
-    rotmat = yaw_rotmat(curr_yaw)
+    try: 
+        rotmat = yaw_rotmat(curr_yaw)
+    except Exception as e:
+        rotmat = yaw_rotmat(curr_yaw[0])
+
     if positions.shape[-1] == 2:
         rotmat = rotmat[:2, :2]
     elif positions.shape[-1] == 3:
