@@ -476,6 +476,7 @@ def _compute_losses_nomad(
     gc_distance = model_output_dict['gc_distance']
 
     gc_dist_loss = F.mse_loss(gc_distance, batch_dist_label.unsqueeze(-1))
+    gc_dist_loss_percentage = torch.div(F.l1_loss(gc_distance, batch_dist_label.unsqueeze(-1), reduction="none"), batch_dist_label.unsqueeze(-1)).mean()
 
     def action_reduce(unreduced_loss: torch.Tensor):
         # Reduce over non-batch dimensions to get loss per batch element
@@ -514,6 +515,7 @@ def _compute_losses_nomad(
         "uc_action_waypts_cos_sim": uc_action_waypts_cos_similairity,
         "uc_multi_action_waypts_cos_sim": uc_multi_action_waypts_cos_sim,
         "gc_dist_loss": gc_dist_loss,
+        "gc_dist_loss_percentage": gc_dist_loss_percentage,
         "gc_action_loss": gc_action_loss,
         "gc_action_waypts_cos_sim": gc_action_waypts_cos_similairity,
         "gc_multi_action_waypts_cos_sim": gc_multi_action_waypts_cos_sim,
@@ -769,6 +771,7 @@ def evaluate_nomad(
         "uc_multi_action_waypts_cos_sim", eval_type, window_size=print_log_freq
     )
     gc_dist_loss_logger = Logger("gc_dist_loss", eval_type, window_size=print_log_freq)
+    gc_dist_loss_percentage_logger = Logger("gc_dist_loss_percentage", eval_type, window_size=print_log_freq)
     gc_action_loss_logger = Logger("gc_action_loss", eval_type, window_size=print_log_freq)
     gc_action_waypts_cos_sim_logger = Logger(
         "gc_action_waypts_cos_sim", eval_type, window_size=print_log_freq
@@ -781,6 +784,7 @@ def evaluate_nomad(
         "uc_action_waypts_cos_sim": uc_action_waypts_cos_sim_logger,
         "uc_multi_action_waypts_cos_sim": uc_multi_action_waypts_cos_sim_logger,
         "gc_dist_loss": gc_dist_loss_logger,
+        "gc_dist_loss_percentage": gc_dist_loss_percentage_logger, 
         "gc_action_loss": gc_action_loss_logger,
         "gc_action_waypts_cos_sim": gc_action_waypts_cos_sim_logger,
         "gc_multi_action_waypts_cos_sim": gc_multi_action_waypts_cos_sim_logger,
