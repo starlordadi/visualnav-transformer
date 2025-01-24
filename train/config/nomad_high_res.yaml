@@ -1,11 +1,11 @@
 project_name: nomad
-run_name: vanilla_nomad
+run_name: nomad_high_res_zero_history
 
 # training setup
 use_wandb: True # set to false if you don't want to log to wandb
 train: True
-batch_size: 200
-eval_batch_size: 200
+batch_size: 256
+eval_batch_size: 256
 epochs: 50
 gpu_ids: [0]
 num_workers: 4
@@ -44,7 +44,7 @@ normalize: False
 
 # context
 context_type: temporal
-context_size: 3 # 5
+context_size: 0 # 5
 alpha: 1e-4
 
 # distance bounds for distance and action and distance predictions 
@@ -63,58 +63,58 @@ learn_angle: False
 image_size: [140, 140] # width, height
 datasets:
   mars_rock:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/sim_mars_rock
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/sim_mars_rock
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/test/
     end_slack: 0
     goals_per_obs: 1 # increase dataset size
     negative_mining: True
   # mars-rock:
   #   data_folder: /data/vlam/processed/mars-rock
-  #   train: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/mars-rock/train/
-  #   test: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/mars-rock/test/
+  #   train: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars-rock/train/
+  #   test: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars-rock/test/
   #   end_slack: 0
   #   goals_per_obs: 2 # increase dataset size
   #   negative_mining: True
   # marsbot_science_rock:
   #   data_folder: /data/vlam/processed/marsbot_science_rock
-  #   train: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/marsbot_science_rock/train/
-  #   test: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/marsbot_science_rock/test/
+  #   train: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/marsbot_science_rock/train/
+  #   test: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/marsbot_science_rock/test/
   #   end_slack: 0
   #   goals_per_obs: 2 # increase dataset size
   #   negative_mining: True
   # spot_garage:
   #   data_folder: /data/vlam/processed/spot_garage
-  #   train: /home/apatnaik/git/visualnav-transformer/train/vint_train/data/data_splits/spot_garage/train/
-  #   test: /home/apatnaik/git/visualnav-transformer/train/vint_train/data/data_splits/spot_garage/test/
+  #   train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot_garage/train/
+  #   test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot_garage/test/
   #   end_slack: 0
   #   goals_per_obs: 2 # increase dataset size
   #   negative_mining: True
   # mars_yard:
   #   data_folder: /data/vlam/processed/mars_yard
-  #   train: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/mars_yard/train/
-  #   test: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/mars_yard/test/
+  #   train: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/train/
+  #   test: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/test/
   #   end_slack: 0
   #   goals_per_obs: 3 # increase dataset size
   #   negative_mining: True
   # figure8_sky:
   #   data_folder: /data/vlam/processed/figure8_sky
-  #   train: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/figure8_sky/train/
-  #   test: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/figure8_sky/test/
+  #   train: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/figure8_sky/train/
+  #   test: /home/jbecktor/sandbox/vanilla_nomad/train/vint_train/data/data_splits/figure8_sky/test/
   #   end_slack: 0
   #   goals_per_obs: 2 # increase dataset size
   #   negative_mining: False
   recon:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/recon
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/train/ # path to train folder with traj_names.txt
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/test/ # path to test folder with traj_names.txt
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/recon
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/recon/train/ # path to train folder with traj_names.txt
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/recon/test/ # path to test folder with traj_names.txt
     end_slack: 3 # because many trajectories end in collisions
     goals_per_obs: 1 # how many goals are sampled per observation
     negative_mining: True # negative mining from the ViNG paper (Shah et al.)
   go_stanford:
-    data_folder: /data/vlam/processed/go_stanford # datasets/stanford_go_new
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/go_stanford # datasets/stanford_go_new
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/test/
     end_slack: 0
     goals_per_obs: 2 # increase dataset size
     negative_mining: True
@@ -126,37 +126,37 @@ datasets:
   #   goals_per_obs: 1
   #   negative_mining: True
   sacson:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/huron
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/huron
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/sacson/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/sacson/test/
     end_slack: 3 # because many trajectories end in collisions
     goals_per_obs: 1
     negative_mining: True
   scand:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/scand
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/scand
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/scand/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/scand/test/
     end_slack: 0
     goals_per_obs: 1
     negative_mining: True
   mars_yard:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/mars_yard
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/mars_yard
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/test/
     end_slack: 0
     goals_per_obs: 3
     negative_mining: True
   spot4_mars_yard:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/spot4_mars_yard
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/spot4_mars_yard/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/spot4_mars_yard/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/spot4_mars_yard
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot4_mars_yard/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot4_mars_yard/test/
     end_slack: 0
     goals_per_obs: 3
     negative_mining: True
   spot4_garage:
-    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/spot4_garage
-    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/spot4_garage/train/
-    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/spot4_garage/test/
+    data_folder: /home/apatnaik/sandbox/vanilla_nomad/datasets/spot4_garage
+    train: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot4_garage/train/
+    test: /home/apatnaik/sandbox/vanilla_nomad/train/vint_train/data/data_splits/spot4_garage/test/
     end_slack: 0
     goals_per_obs: 3
     negative_mining: True
