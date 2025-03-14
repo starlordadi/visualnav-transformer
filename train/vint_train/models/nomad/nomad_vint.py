@@ -6,6 +6,38 @@ from typing import List, Dict, Optional, Tuple, Callable
 from efficientnet_pytorch import EfficientNet
 from vint_train.models.vint.self_attention import PositionalEncoding
 
+
+class PositionGoalEncoder(nn.Module):
+    def __init__(
+        self,
+        obs_encoding_size: Optional[int] =  512,
+        goal_vector_size: Optional[int] = 2,
+        fixed_dim: Optional[int] = 3000  
+    ):
+        super().__init__()
+        self.obs_encoding_size = obs_encoding_size
+        self.goal_vector_size = goal_vector_size
+        self.fixed_dim = fixed_dim
+
+        # Define parameter to concatenate with goal_vector
+        self.fixed_goal_vec = nn.Parameter(torch.randn(self.fixed_dim))
+
+        self.mlp_encoder = nn.Sequential(
+            nn.Linear(self.fixed_dim + self.goal_vector_size, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, self.obs_encoding_size)
+        )
+
+    def forward(self, x):
+        device = x.device
+        batch_size = x.shape[0]
+        expanded_fixed_vector = self.fixed_goal_vec.unsqueeze(0).expand(batch_size, -1).to(device)
+        
+        combined_input = torch.cat([x, expanded_fixed_vector], dim=1)
+
+        output = self.mlp_encoder(combined_input)
+        return output
+
 class NoMaD_ViNT(nn.Module):
     def __init__(
         self,
@@ -33,10 +65,14 @@ class NoMaD_ViNT(nn.Module):
         else:
             raise NotImplementedError
         
-        # Initialize the goal encoder
-        self.goal_encoder = EfficientNet.from_name("efficientnet-b0", in_channels=6) # obs+goal
-        self.goal_encoder = replace_bn_with_gn(self.goal_encoder)
-        self.num_goal_features = self.goal_encoder._fc.in_features
+        # Initialize position goal encoder
+        self.goal_encoder = PositionGoalEncoder(self.goal_encoding_size)
+        self.num_goal_features = self.goal_encoding_size
+        
+        # # Initialize the goal encoder
+        # self.goal_encoder = EfficientNet.from_name("efficientnet-b0", in_channels=6) # obs+goal
+        # self.goal_encoder = replace_bn_with_gn(self.goal_encoder)
+        # self.num_goal_features = self.goal_encoder._fc.in_features
 
         # Initialize compression layers if necessary
         if self.num_obs_features != self.obs_encoding_size:
@@ -69,7 +105,7 @@ class NoMaD_ViNT(nn.Module):
         self.avg_pool_mask = torch.cat([1 - self.no_mask.float(), (1 - self.goal_mask.float()) * ((self.context_size + 2)/(self.context_size + 1))], dim=0)
 
 
-    def forward(self, obs_img: torch.tensor, goal_img: torch.tensor, input_goal_mask: torch.tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, obs_img: torch.tensor, goal_vec: torch.tensor, input_goal_mask: torch.tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
 
         device = obs_img.device
 
@@ -81,19 +117,12 @@ class NoMaD_ViNT(nn.Module):
             goal_mask = input_goal_mask.to(device)
 
         # Get the goal encoding
-        obsgoal_img = torch.cat([obs_img[:, 3*self.context_size:, :, :], goal_img], dim=1) # concatenate the obs image/context and goal image --> non image goal?
-        obsgoal_encoding = self.goal_encoder.extract_features(obsgoal_img) # get encoding of this img 
-        obsgoal_encoding = self.goal_encoder._avg_pooling(obsgoal_encoding) # avg pooling 
-        
-        if self.goal_encoder._global_params.include_top:
-            obsgoal_encoding = obsgoal_encoding.flatten(start_dim=1)
-            obsgoal_encoding = self.goal_encoder._dropout(obsgoal_encoding)
-        obsgoal_encoding = self.compress_goal_enc(obsgoal_encoding)
+        goal_encoding = self.goal_encoder(goal_vec) # get encoding of goal vector
 
-        if len(obsgoal_encoding.shape) == 2:
-            obsgoal_encoding = obsgoal_encoding.unsqueeze(1)
-        assert obsgoal_encoding.shape[2] == self.goal_encoding_size
-        goal_encoding = obsgoal_encoding
+        if len(goal_encoding.shape) == 2:
+            goal_encoding = goal_encoding.unsqueeze(1)
+        assert goal_encoding.shape[2] == self.goal_encoding_size
+        goal_encoding = goal_encoding
         
         # Get the observation encoding
         obs_img = torch.split(obs_img, 3, dim=1)
@@ -128,6 +157,67 @@ class NoMaD_ViNT(nn.Module):
         obs_encoding_tokens = torch.mean(obs_encoding_tokens, dim=1)
 
         return obs_encoding_tokens
+        
+        
+    # def forward(self, obs_img: torch.tensor, goal_img: torch.tensor, input_goal_mask: torch.tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    #     device = obs_img.device
+
+    #     # Initialize the goal encoding
+    #     goal_encoding = torch.zeros((obs_img.size()[0], 1, self.goal_encoding_size)).to(device)
+        
+    #     # Get the input goal mask 
+    #     if input_goal_mask is not None:
+    #         goal_mask = input_goal_mask.to(device)
+
+    #     # Get the goal encoding
+    #     obsgoal_img = torch.cat([obs_img[:, 3*self.context_size:, :, :], goal_img], dim=1) # concatenate the obs image/context and goal image --> non image goal?
+    #     obsgoal_encoding = self.goal_encoder.extract_features(obsgoal_img) # get encoding of this img 
+    #     obsgoal_encoding = self.goal_encoder._avg_pooling(obsgoal_encoding) # avg pooling 
+        
+    #     if self.goal_encoder._global_params.include_top:
+    #         obsgoal_encoding = obsgoal_encoding.flatten(start_dim=1)
+    #         obsgoal_encoding = self.goal_encoder._dropout(obsgoal_encoding)
+    #     obsgoal_encoding = self.compress_goal_enc(obsgoal_encoding)
+
+    #     if len(obsgoal_encoding.shape) == 2:
+    #         obsgoal_encoding = obsgoal_encoding.unsqueeze(1)
+    #     assert obsgoal_encoding.shape[2] == self.goal_encoding_size
+    #     goal_encoding = obsgoal_encoding
+        
+    #     # Get the observation encoding
+    #     obs_img = torch.split(obs_img, 3, dim=1)
+    #     obs_img = torch.concat(obs_img, dim=0)
+
+    #     obs_encoding = self.obs_encoder.extract_features(obs_img)
+    #     obs_encoding = self.obs_encoder._avg_pooling(obs_encoding)
+    #     if self.obs_encoder._global_params.include_top:
+    #         obs_encoding = obs_encoding.flatten(start_dim=1)
+    #         obs_encoding = self.obs_encoder._dropout(obs_encoding)
+    #     obs_encoding = self.compress_obs_enc(obs_encoding)
+    #     obs_encoding = obs_encoding.unsqueeze(1)
+    #     obs_encoding = obs_encoding.reshape((self.context_size+1, -1, self.obs_encoding_size))
+    #     obs_encoding = torch.transpose(obs_encoding, 0, 1)
+    #     obs_encoding = torch.cat((obs_encoding, goal_encoding), dim=1)
+        
+    #     # If a goal mask is provided, mask some of the goal tokens
+    #     if goal_mask is not None:
+    #         no_goal_mask = goal_mask.long()
+    #         src_key_padding_mask = torch.index_select(self.all_masks.to(device), 0, no_goal_mask)
+    #     else:
+    #         src_key_padding_mask = None
+        
+    #     # Apply positional encoding 
+    #     if self.positional_encoding:
+    #         obs_encoding = self.positional_encoding(obs_encoding)
+
+    #     obs_encoding_tokens = self.sa_encoder(obs_encoding, src_key_padding_mask=src_key_padding_mask)
+    #     if src_key_padding_mask is not None:
+    #         avg_mask = torch.index_select(self.avg_pool_mask.to(device), 0, no_goal_mask).unsqueeze(-1)
+    #         obs_encoding_tokens = obs_encoding_tokens * avg_mask
+    #     obs_encoding_tokens = torch.mean(obs_encoding_tokens, dim=1)
+
+    #     return obs_encoding_tokens
 
 
 

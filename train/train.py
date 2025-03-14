@@ -202,6 +202,7 @@ def main(config):
                 global_cond_dim=config["encoding_size"],
                 down_dims=config["down_dims"],
                 cond_predict_scale=config["cond_predict_scale"],
+                kernel_size=config["kernel_size"],
             )
         dist_pred_network = DenseNetwork(embedding_dim=config["encoding_size"])
         
@@ -284,7 +285,7 @@ def main(config):
         load_project_folder = os.path.join("logs", config["load_run"])
         print("Loading model from ", load_project_folder)
         latest_path = os.path.join(load_project_folder, "latest.pth")
-        latest_checkpoint = torch.load(latest_path) #f"cuda:{}" if torch.cuda.is_available() else "cpu")
+        latest_checkpoint = torch.load(latest_path, map_location=torch.device('cuda:0')) #f"cuda:{}" if torch.cuda.is_available() else "cpu")
         load_model(model, config["model_type"], latest_checkpoint)
         if "epoch" in latest_checkpoint:
             current_epoch = latest_checkpoint["epoch"] + 1

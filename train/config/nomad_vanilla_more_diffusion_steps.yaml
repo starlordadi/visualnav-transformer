@@ -1,12 +1,11 @@
 project_name: nomad
-run_name: nomad_high_res_zero_hist_finetune
+run_name: vanilla_nomad_more_diffusion_steps_1e-5
 
 # training setup
-use_wandb: True  # set to false if you don't want to log to wandb
-load_run: nomad/nomad_high_res_zero_hist_2025_01_23_17_35_34 # For fine tuning
+use_wandb: True # set to false if you don't want to log to wandb
 train: True
-batch_size: 256
-eval_batch_size: 256
+batch_size: 200
+eval_batch_size: 200
 epochs: 50
 gpu_ids: [0]
 num_workers: 4
@@ -35,7 +34,7 @@ mha_ff_dim_factor: 4
 down_dims: [64, 128, 256]
 
 # diffusion model params
-num_diffusion_iters: 10
+num_diffusion_iters: 100
 
 # mask 
 goal_mask_prob: 0.5
@@ -45,10 +44,10 @@ normalize: False
 
 # context
 context_type: temporal
-context_size: 0 # 5
-alpha: 1e-3
-
+context_size: 3 # 5
+alpha: 1e-5
 # distance bounds for distance and action and distance predictions 
+
 distance:
   min_dist_cat: 0
   max_dist_cat: 20
@@ -61,15 +60,15 @@ len_traj_pred: 8
 learn_angle: False
 
 # dataset specific parameters
-image_size: [140, 140] # width, height
+image_size: [96, 96] # width, height
 datasets:
-  # mars_rock:
-  #   data_folder: /home/apatnaik/git/visualnav-transformer/datasets/sim_mars_rock
-  #   train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/train/
-  #   test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/test/
-  #   end_slack: 0
-  #   goals_per_obs: 1 # increase dataset size
-  #   negative_mining: True
+  mars_rock:
+    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/sim_mars_rock
+    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/train/
+    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_rock/test/
+    end_slack: 0
+    goals_per_obs: 1 # increase dataset size
+    negative_mining: True
   # mars-rock:
   #   data_folder: /data/vlam/processed/mars-rock
   #   train: /home/jbecktor/git/visualnav-transformer/train/vint_train/data/data_splits/mars-rock/train/
@@ -105,20 +104,20 @@ datasets:
   #   end_slack: 0
   #   goals_per_obs: 2 # increase dataset size
   #   negative_mining: False
-  # recon:
-  #   data_folder: /home/apatnaik/git/visualnav-transformer/datasets/recon
-  #   train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/train/ # path to train folder with traj_names.txt
-  #   test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/test/ # path to test folder with traj_names.txt
-  #   end_slack: 3 # because many trajectories end in collisions
-  #   goals_per_obs: 1 # how many goals are sampled per observation
-  #   negative_mining: True # negative mining from the ViNG paper (Shah et al.)
-  # go_stanford:
-  #   data_folder: /data/vlam/processed/go_stanford # datasets/stanford_go_new
-  #   train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/train/
-  #   test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/test/
-  #   end_slack: 0
-  #   goals_per_obs: 2 # increase dataset size
-  #   negative_mining: True
+  recon:
+    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/recon
+    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/train/ # path to train folder with traj_names.txt
+    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/recon/test/ # path to test folder with traj_names.txt
+    end_slack: 3 # because many trajectories end in collisions
+    goals_per_obs: 1 # how many goals are sampled per observation
+    negative_mining: True # negative mining from the ViNG paper (Shah et al.)
+  go_stanford:
+    data_folder: /data/vlam/processed/go_stanford # datasets/stanford_go_new
+    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/train/
+    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/go_stanford/test/
+    end_slack: 0
+    goals_per_obs: 2 # increase dataset size
+    negative_mining: True
   # tartan_drive:
   #   data_folder: /home/<username>/nomad_dataset/tartan_drive/
   #   train: /home/<username>/data_splits/tartan_drive/train/
@@ -126,20 +125,20 @@ datasets:
   #   end_slack: 3 # because many trajectories end in collisions
   #   goals_per_obs: 1
   #   negative_mining: True
-  # sacson:
-  #   data_folder: /home/apatnaik/git/visualnav-transformer/datasets/huron
-  #   train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/train/
-  #   test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/test/
-  #   end_slack: 3 # because many trajectories end in collisions
-  #   goals_per_obs: 1
-  #   negative_mining: True
-  # scand:
-  #   data_folder: /home/apatnaik/git/visualnav-transformer/datasets/scand
-  #   train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/train/
-  #   test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/test/
-  #   end_slack: 0
-  #   goals_per_obs: 1
-  #   negative_mining: True
+  sacson:
+    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/huron
+    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/train/
+    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/sacson/test/
+    end_slack: 3 # because many trajectories end in collisions
+    goals_per_obs: 1
+    negative_mining: True
+  scand:
+    data_folder: /home/apatnaik/git/visualnav-transformer/datasets/scand
+    train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/train/
+    test: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/scand/test/
+    end_slack: 0
+    goals_per_obs: 1
+    negative_mining: True
   mars_yard:
     data_folder: /home/apatnaik/git/visualnav-transformer/datasets/mars_yard
     train: /home/apatnaik/git/vanilla_nomad/train/vint_train/data/data_splits/mars_yard/train/
