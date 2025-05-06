@@ -24,7 +24,7 @@ from vint_train.models.gnm.gnm import GNM
 from vint_train.models.vint.vint import ViNT
 from vint_train.models.vint.vit import ViT
 from vint_train.models.nomad.nomad import NoMaD, DenseNetwork
-from vint_train.models.nomad.nomad_vint import NoMaD_ViNT, replace_bn_with_gn
+from vint_train.models.nomad.nomad_vint import NoMaD_ViNT, NoMaD_VGGT, replace_bn_with_gn
 from diffusion_policy.model.diffusion.conditional_unet1d import ConditionalUnet1D
 
 
@@ -166,7 +166,13 @@ def main(config):
             mha_ff_dim_factor=config["mha_ff_dim_factor"],
         )
     elif config["model_type"] == "nomad":
-        if config["vision_encoder"] == "nomad_vint":
+        if config["vision_encoder"] == "nomad_vggt":
+            vision_encoder = NoMaD_VGGT(
+                obs_encoding_size=config["encoding_size"],
+                context_size=config["context_size"]
+            )
+            vision_encoder = replace_bn_with_gn(vision_encoder)
+        elif config["vision_encoder"] == "nomad_vint":
             vision_encoder = NoMaD_ViNT(
                 obs_encoding_size=config["encoding_size"],
                 context_size=config["context_size"],

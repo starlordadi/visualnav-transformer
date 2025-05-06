@@ -1,5 +1,5 @@
 project_name: nomad
-run_name: nomad_with_position_cfg_augmentation
+run_name: nomad_with_augmentation
 
 # training setup
 use_wandb: True # set to false if you don't want to log to wandb
@@ -24,7 +24,8 @@ seed: 0
 
 # model params
 model_type: nomad
-vision_encoder: nomad_vint
+vision_encoder: nomad_vin:
+    passt
 encoding_size: 256
 obs_encoder: efficientnet-b0
 attn_unet: False

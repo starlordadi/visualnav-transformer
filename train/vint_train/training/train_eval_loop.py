@@ -200,7 +200,7 @@ def train_eval_loop_nomad(
             print(
             f"Start ViNT DP Training Epoch {epoch}/{current_epoch + epochs - 1}"
             )
-            train_nomad_with_position(
+            train_nomad(
                 model=model,
                 ema_model=ema_model,
                 optimizer=optimizer,
@@ -247,7 +247,7 @@ def train_eval_loop_nomad(
                     f"Start {dataset_type} ViNT DP Testing Epoch {epoch}/{current_epoch + epochs - 1}"
                 )
                 loader = test_dataloaders[dataset_type]
-                evaluate_nomad_with_position(
+                evaluate_nomad(
                     eval_type=dataset_type,
                     ema_model=ema_model,
                     dataloader=loader,

@@ -1467,29 +1467,29 @@ def model_output_with_pos(
         (len(obs_cond), pred_horizon, action_dim), device=device)
     diffusion_output = noisy_diffusion_output
 
-    # # Get output from None conditioned diffusion
-    # for k in noise_scheduler.timesteps[:]:
-    #     # predict noise
-    #     noise_pred = model(
-    #         "noise_pred_net",
-    #         sample=diffusion_output,
-    #         timestep=k.unsqueeze(-1).repeat(diffusion_output.shape[0]).to(device),
-    #         global_cond=None
-    #     )
+    # Get output from None conditioned diffusion
+    for k in noise_scheduler.timesteps[:]:
+        # predict noise
+        noise_pred = model(
+            "noise_pred_net",
+            sample=diffusion_output,
+            timestep=k.unsqueeze(-1).repeat(diffusion_output.shape[0]).to(device),
+            global_cond=None
+        )
 
-    #     # inverse diffusion step (remove noise)
-    #     diffusion_output = noise_scheduler.step(
-    #         model_output=noise_pred,
-    #         timestep=k,
-    #         sample=diffusion_output
-    #     ).prev_sample
+        # inverse diffusion step (remove noise)
+        diffusion_output = noise_scheduler.step(
+            model_output=noise_pred,
+            timestep=k,
+            sample=diffusion_output
+        ).prev_sample
 
-    # no_condition_action = get_action(diffusion_output, ACTION_STATS)
+    no_condition_action = get_action(diffusion_output, ACTION_STATS)
 
-    # # Initialize action from Gaussian noise
-    # noisy_diffusion_output = torch.randn(
-    #     (len(obs_cond), pred_horizon, action_dim), device=device)
-    # diffusion_output = noisy_diffusion_output
+    # Initialize action from Gaussian noise
+    noisy_diffusion_output = torch.randn(
+        (len(obs_cond), pred_horizon, action_dim), device=device)
+    diffusion_output = noisy_diffusion_output
 
     for k in noise_scheduler.timesteps[:]:
         # predict noise
@@ -1537,7 +1537,7 @@ def model_output_with_pos(
         'uc_actions': uc_actions,
         'gc_actions': gc_actions,
         'gc_distance': gc_distance,
-        # 'no_condition_action': no_condition_action,
+        'no_condition_action': no_condition_action,
     }
 
 def model_output(
@@ -1565,29 +1565,29 @@ def model_output(
         (len(obs_cond), pred_horizon, action_dim), device=device)
     diffusion_output = noisy_diffusion_output
 
-    # # Get output from None conditioned diffusion
-    # for k in noise_scheduler.timesteps[:]:
-    #     # predict noise
-    #     noise_pred = model(
-    #         "noise_pred_net",
-    #         sample=diffusion_output,
-    #         timestep=k.unsqueeze(-1).repeat(diffusion_output.shape[0]).to(device),
-    #         global_cond=None
-    #     )
+    # Get output from None conditioned diffusion
+    for k in noise_scheduler.timesteps[:]:
+        # predict noise
+        noise_pred = model(
+            "noise_pred_net",
+            sample=diffusion_output,
+            timestep=k.unsqueeze(-1).repeat(diffusion_output.shape[0]).to(device),
+            global_cond=None
+        )
 
-    #     # inverse diffusion step (remove noise)
-    #     diffusion_output = noise_scheduler.step(
-    #         model_output=noise_pred,
-    #         timestep=k,
-    #         sample=diffusion_output
-    #     ).prev_sample
+        # inverse diffusion step (remove noise)
+        diffusion_output = noise_scheduler.step(
+            model_output=noise_pred,
+            timestep=k,
+            sample=diffusion_output
+        ).prev_sample
 
-    # no_condition_action = get_action(diffusion_output, ACTION_STATS)
+    no_condition_action = get_action(diffusion_output, ACTION_STATS)
 
-    # # Initialize action from Gaussian noise
-    # noisy_diffusion_output = torch.randn(
-    #     (len(obs_cond), pred_horizon, action_dim), device=device)
-    # diffusion_output = noisy_diffusion_output
+    # Initialize action from Gaussian noise
+    noisy_diffusion_output = torch.randn(
+        (len(obs_cond), pred_horizon, action_dim), device=device)
+    diffusion_output = noisy_diffusion_output
 
     for k in noise_scheduler.timesteps[:]:
         # predict noise
@@ -1635,7 +1635,7 @@ def model_output(
         'uc_actions': uc_actions,
         'gc_actions': gc_actions,
         'gc_distance': gc_distance,
-        # 'no_condition_action': no_condition_action,
+        'no_condition_action': no_condition_action,
     }
 
 
@@ -1690,10 +1690,10 @@ def visualize_diffusion_action_distribution(
     uc_actions_list = []
     gc_actions_list = []
     gc_distances_list = []
-    # no_conditions_actions_list = []
+    no_conditions_actions_list = []
 
-    for obs, goal in zip(batch_obs_images_list, batch_goal_pos_list):
-        model_output_dict = model_output_with_pos(
+    for obs, goal in zip(batch_obs_images_list, batch_goal_images_list):
+        model_output_dict = model_output(
             ema_model,
             noise_scheduler,
             obs,
@@ -1706,19 +1706,19 @@ def visualize_diffusion_action_distribution(
         uc_actions_list.append(to_numpy(model_output_dict['uc_actions']))
         gc_actions_list.append(to_numpy(model_output_dict['gc_actions']))
         gc_distances_list.append(to_numpy(model_output_dict['gc_distance']))
-        # no_conditions_actions_list.append(to_numpy(model_output_dict['no_condition_action']))
+        no_conditions_actions_list.append(to_numpy(model_output_dict['no_condition_action']))
 
     # concatenate
     uc_actions_list = np.concatenate(uc_actions_list, axis=0)
     gc_actions_list = np.concatenate(gc_actions_list, axis=0)
     gc_distances_list = np.concatenate(gc_distances_list, axis=0)
-    # no_conditions_actions_list = np.concatenate(no_conditions_actions_list, axis=0)
+    no_conditions_actions_list = np.concatenate(no_conditions_actions_list, axis=0)
 
     # split into actions per observation
     uc_actions_list = np.split(uc_actions_list, num_images_log, axis=0)
     gc_actions_list = np.split(gc_actions_list, num_images_log, axis=0)
     gc_distances_list = np.split(gc_distances_list, num_images_log, axis=0)
-    # no_conditions_actions_list = np.split(no_conditions_actions_list, num_images_log, axis=0)
+    no_conditions_actions_list = np.split(no_conditions_actions_list, num_images_log, axis=0)
 
     gc_distances_avg = [np.mean(dist) for dist in gc_distances_list]
     gc_distances_std = [np.std(dist) for dist in gc_distances_list]
@@ -1731,20 +1731,20 @@ def visualize_diffusion_action_distribution(
         fig, ax = plt.subplots(1, 3)
         uc_actions = uc_actions_list[i]
         gc_actions = gc_actions_list[i]
-        # no_conditions_actions = no_conditions_actions_list[i]
+        no_conditions_actions = no_conditions_actions_list[i]
         action_label = to_numpy(batch_action_label[i])
 
         traj_list = np.concatenate([
             uc_actions,
             gc_actions,
-            # no_conditions_actions,
+            no_conditions_actions,
             action_label[None],
         ], axis=0)
         # traj_labels = ["r", "GC", "GC_mean", "GT"]
-        # traj_colors = ["red"] * len(uc_actions) + ["green"] * len(gc_actions) + ["blue"] * len(no_conditions_actions) + ["magenta"]
-        # traj_alphas = [0.1] * (len(uc_actions) + len(gc_actions) + len(no_conditions_actions)) + [1.0]
-        traj_colors = ["red"] * len(uc_actions) + ["green"] * len(gc_actions) + ["magenta"]
-        traj_alphas = [0.1] * (len(uc_actions) + len(gc_actions)) + [1.0]
+        traj_colors = ["red"] * len(uc_actions) + ["green"] * len(gc_actions) + ["blue"] * len(no_conditions_actions) + ["magenta"]
+        traj_alphas = [0.1] * (len(uc_actions) + len(gc_actions) + len(no_conditions_actions)) + [1.0]
+        # traj_colors = ["red"] * len(uc_actions) + ["green"] * len(gc_actions) + ["magenta"]
+        # traj_alphas = [0.1] * (len(uc_actions) + len(gc_actions)) + [1.0]
 
    
         # make points numpy array of robot positions (0, 0) and goal positions
