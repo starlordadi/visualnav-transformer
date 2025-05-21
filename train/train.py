@@ -24,7 +24,7 @@ from vint_train.models.gnm.gnm import GNM
 from vint_train.models.vint.vint import ViNT
 from vint_train.models.vint.vit import ViT
 from vint_train.models.nomad.nomad import NoMaD, DenseNetwork
-from vint_train.models.nomad.nomad_vint import NoMaD_ViNT, replace_bn_with_gn
+from vint_train.models.nomad.nomad_vint import NoMaD_ViNT, NoMaD_VGGT, replace_bn_with_gn
 from diffusion_policy.model.diffusion.conditional_unet1d import ConditionalUnet1D
 
 
@@ -166,7 +166,13 @@ def main(config):
             mha_ff_dim_factor=config["mha_ff_dim_factor"],
         )
     elif config["model_type"] == "nomad":
-        if config["vision_encoder"] == "nomad_vint":
+        if config["vision_encoder"] == "nomad_vggt":
+            vision_encoder = NoMaD_VGGT(
+                obs_encoding_size=config["encoding_size"],
+                context_size=config["context_size"]
+            )
+            vision_encoder = replace_bn_with_gn(vision_encoder)
+        elif config["vision_encoder"] == "nomad_vint":
             vision_encoder = NoMaD_ViNT(
                 obs_encoding_size=config["encoding_size"],
                 context_size=config["context_size"],
@@ -202,6 +208,7 @@ def main(config):
                 global_cond_dim=config["encoding_size"],
                 down_dims=config["down_dims"],
                 cond_predict_scale=config["cond_predict_scale"],
+                kernel_size=config["kernel_size"],
             )
         dist_pred_network = DenseNetwork(embedding_dim=config["encoding_size"])
         
@@ -284,7 +291,7 @@ def main(config):
         load_project_folder = os.path.join("logs", config["load_run"])
         print("Loading model from ", load_project_folder)
         latest_path = os.path.join(load_project_folder, "latest.pth")
-        latest_checkpoint = torch.load(latest_path) #f"cuda:{}" if torch.cuda.is_available() else "cpu")
+        latest_checkpoint = torch.load(latest_path, map_location=torch.device('cuda:0')) #f"cuda:{}" if torch.cuda.is_available() else "cpu")
         load_model(model, config["model_type"], latest_checkpoint)
         if "epoch" in latest_checkpoint:
             current_epoch = latest_checkpoint["epoch"] + 1

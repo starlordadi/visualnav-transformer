@@ -7,7 +7,7 @@ import cv2
 from typing import Any, Tuple, List, Dict
 import torchvision.transforms.functional as TF
 
-IMAGE_SIZE = (280, 280)
+IMAGE_SIZE = (518, 518)
 # IMAGE_ASPECT_RATIO = 4 / 3
 IMAGE_ASPECT_RATIO = 1 / 1
 

@@ -5,7 +5,7 @@ from typing import List, Optional, Dict
 from prettytable import PrettyTable
 
 from vint_train.training.train_utils import train, evaluate
-from vint_train.training.train_utils import train_nomad, evaluate_nomad
+from vint_train.training.train_utils import train_nomad, evaluate_nomad, train_nomad_with_position, evaluate_nomad_with_position
 
 import torch
 import torch.nn as nn
